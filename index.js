@@ -1,5 +1,6 @@
 var SingleEntryPlugin = require('webpack/lib/SingleEntryPlugin');
 var utils = require('loader-utils');
+var path = require('path');
 
 module.exports = function() {
   // ...
@@ -31,6 +32,24 @@ function createCompiler(loader, request, options) {
   var compiler = getCompilation(loader).createChildCompiler('entry', options);
   var plugin = new SingleEntryPlugin(loader.context, '!!' + request, path.parse(loader.resourcePath).name)
   compiler.apply(plugin);
+
+  var query = utils.parseQuery(loader.query);
+  var ignoredPlugins = query.ignoredPlugins || [];
+
+  if (query.plugins) {
+    if (query.plugins === true) {
+      loader.options.plugins
+        .filter(mainPlugin => !ignoredPlugins.includes(mainPlugin.constructor.name))
+        .forEach(mainPlugin => compiler.apply(mainPlugin));
+    } else if (Array.isArray(query.plugins)) {
+      query.plugins.forEach(pluginName => {
+        loader.options.plugins
+          .filter(mainPlugin => mainPlugin.constructor.name === pluginName)
+          .forEach(mainPlugin => compiler.apply(mainPlugin));
+      })
+    }
+  }
+
   var subCache = 'subcache ' + __dirname + ' ' + request;
   compiler.plugin('compilation', function(compilation) {
     if (!compilation.cache) {
