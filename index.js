@@ -1,6 +1,5 @@
 var SingleEntryPlugin = require('webpack/lib/SingleEntryPlugin');
 var utils = require('loader-utils');
-var path = require('path');
 
 module.exports = function() {
   // ...
@@ -10,7 +9,7 @@ module.exports.pitch = function(request) {
   this.addDependency(request);
   var query = utils.parseQuery(this.query);
   var compiler = createCompiler(this, request, {
-    filename: query.name
+    filename: utils.interpolateName(this, query.name, {}),
   });
   runCompiler(compiler, this.async());
 };
@@ -30,7 +29,7 @@ function runCompiler(compiler, callback) {
 
 function createCompiler(loader, request, options) {
   var compiler = getCompilation(loader).createChildCompiler('entry', options);
-  var plugin = new SingleEntryPlugin(loader.context, '!!' + request, path.parse(loader.resourcePath).name)
+  var plugin = new SingleEntryPlugin(loader.context, '!!' + request, 'main')
   compiler.apply(plugin);
 
   var query = utils.parseQuery(loader.query);
