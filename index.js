@@ -29,7 +29,7 @@ function runCompiler(compiler, callback) {
 
 function createCompiler(loader, request, options) {
   var compiler = getCompilation(loader).createChildCompiler('entry', options);
-  var plugin = new SingleEntryPlugin(loader.context, '!!' + request, 'main')
+  var plugin = new SingleEntryPlugin(loader.context, '!!' + request, path.parse(loader.resourcePath).name)
   compiler.apply(plugin);
   var subCache = 'subcache ' + __dirname + ' ' + request;
   compiler.plugin('compilation', function(compilation) {
